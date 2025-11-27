@@ -1,0 +1,512 @@
+{% extends "base/admin_base.html" %}
+
+{% block title %}订单管理 - 后台管理中心{% endblock %}
+
+{% block css %}
+<style>
+    .order-manage-container {
+        padding: 20px;
+    }
+    .manage-title {
+        font-size: 24px;
+        margin-bottom: 30px;
+        font-weight: bold;
+        color: #333;
+    }
+    .filter-bar {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .filter-input {
+        height: 36px;
+        padding: 0 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        width: 200px;
+    }
+    .filter-select {
+        height: 36px;
+        padding: 0 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        width: 150px;
+    }
+    .filter-btn {
+        padding: 8px 16px;
+        background: #008CBA;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .order-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .order-table th, .order-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    .order-table th {
+        background: #f9f9f9;
+        font-weight: bold;
+        color: #333;
+    }
+    .order-table td {
+        vertical-align: middle;
+    }
+    .order-items {
+        max-width: 200px;
+    }
+    .order-item {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 5px;
+    }
+    .order-item-img {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    .order-item-name {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+    }
+    .operate-btn {
+        padding: 4px 8px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        margin-right: 5px;
+    }
+    .detail-btn {
+        background: #008CBA;
+        color: white;
+    }
+    .update-btn {
+        background: #27ae60;
+        color: white;
+    }
+    .delete-btn {
+        background: #e74c3c;
+        color: white;
+    }
+    .status-tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+    }
+    .status-pending {
+        background: #f1c40f;
+        color: #fff;
+    }
+    .status-paid {
+        background: #3498db;
+        color: #fff;
+    }
+    .status-shipped {
+        background: #9b59b6;
+        color: #fff;
+    }
+    .status-completed {
+        background: #27ae60;
+        color: #fff;
+    }
+    .status-canceled {
+        background: #e74c3c;
+        color: #fff;
+    }
+
+    /* 订单详情弹窗 */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        overflow-y: auto;
+    }
+    .modal.active {
+        display: flex;
+    }
+    .modal-content {
+        background: white;
+        width: 800px;
+        max-width: 90%;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        margin: 20px 0;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+    .modal-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #666;
+    }
+    .order-detail-section {
+        margin-bottom: 20px;
+    }
+    .section-title {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+    }
+    .detail-table th, .detail-table td {
+        padding: 8px 10px;
+        border: 1px solid #eee;
+        text-align: left;
+    }
+    .detail-table th {
+        background: #f9f9f9;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    .detail-table td {
+        font-size: 14px;
+    }
+    .order-items-list {
+        border: 1px solid #eee;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .items-list-header {
+        background: #f9f9f9;
+        padding: 10px 15px;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    .items-list-body {
+        padding: 15px;
+    }
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+    }
+    .cancel-btn {
+        padding: 8px 16px;
+        background: #f5f5f5;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .update-status-btn {
+        padding: 8px 16px;
+        background: #008CBA;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="order-manage-container">
+    <div class="manage-title">订单管理</div>
+
+    <div class="filter-bar">
+        <input type="text" class="filter-input" placeholder="搜索订单号/用户名">
+        <select class="filter-select" id="orderStatusFilter">
+            <option value="">全部状态</option>
+            <option value="待付款">待付款</option>
+            <option value="已付款">已付款</option>
+            <option value="已发货">已发货</option>
+            <option value="已完成">已完成</option>
+            <option value="已取消">已取消</option>
+        </select>
+        <input type="date" class="filter-input" placeholder="下单日期">
+        <button class="filter-btn">筛选</button>
+    </div>
+
+    <table class="order-table">
+        <thead>
+            <tr>
+                <th>订单ID</th>
+                <th>用户名</th>
+                <th>订单商品</th>
+                <th>订单金额（元）</th>
+                <th>下单时间</th>
+                <th>订单状态</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.order_id }}</td>
+                <td>{{ order.username }}</td>
+                
+                <!-- 订单商品明细部分（完整修改后） -->
+                <td class="order-items">
+                    {% for item in order.get('items', [])[:2] %}  <!-- 循环容错 -->
+                    <div class="order-item">
+                        <img src="/static/admin/uploads/products/{{ item.image }}" alt="{{ item.name }}" class="order-item-img">
+                        <span class="order-item-name">{{ item.name }} x{{ item.quantity }}</span>
+                    </div>
+                    {% endfor %}
+                    <!-- 长度判断容错 -->
+                    {% if order.get('items', [])|length > 2 %}
+                        <div class="order-more">... 共{{ order.get('items', [])|length }}件商品</div>
+                    {% endif %}
+                </td>
+                <td>¥{{ order.total_amount }}</td>
+                <td>{{ order.create_time }}</td>
+       
+                <td>
+                    {% if order.status == '待付款' %}
+                        <span class="status-tag status-pending">{{ order.status }}</span>
+                    {% elif order.status == '已付款' %}
+                        <span class="status-tag status-paid">{{ order.status }}</span>
+                    {% elif order.status == '已发货' %}
+                        <span class="status-tag status-shipped">{{ order.status }}</span>
+                    {% elif order.status == '已完成' %}
+                        <span class="status-tag status-completed">{{ order.status }}</span>
+                    {% elif order.status == '已取消' %}
+                        <span class="status-tag status-canceled">{{ order.status }}</span>
+                    {% else %}
+                        <span class="status-tag">{{ order.status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <button class="operate-btn detail-btn" onclick="openDetailModal('{{ order|tojson|safe }}')">详情</button>
+                    <button class="operate-btn update-btn" onclick="updateOrderStatus('{{ order.order_id }}')">更新状态</button>
+                    <button class="operate-btn delete-btn" onclick="deleteOrder('{{ order.order_id }}')">删除</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- 订单详情弹窗 -->
+<div class="modal" id="orderDetailModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">订单详情</h3>
+            <button class="close-modal" onclick="closeModal()">×</button>
+        </div>
+        <div id="orderDetailContent">
+            <!-- 订单详情内容将通过JS动态填充 -->
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="cancel-btn" onclick="closeModal()">关闭</button>
+            <button type="button" class="update-status-btn" id="updateStatusBtn">更新订单状态</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    const modal = document.getElementById('orderDetailModal');
+    let currentOrderId = null;
+
+    // 获取状态标签的HTML
+    function getStatusTag(status) {
+        switch (status) {
+            case '待付款': 
+                return '<span class="status-tag status-pending">' + status + '</span>';
+            case '已付款': 
+                return '<span class="status-tag status-paid">' + status + '</span>';
+            case '已发货': 
+                return '<span class="status-tag status-shipped">' + status + '</span>';
+            case '已完成': 
+                return '<span class="status-tag status-completed">' + status + '</span>';
+            case '已取消': 
+                return '<span class="status-tag status-canceled">' + status + '</span>';
+            default: 
+                return '<span class="status-tag">' + status + '</span>';
+        }
+    }
+
+    // 打开订单详情弹窗
+    function openDetailModal(orderJson) {
+        const order = JSON.parse(orderJson);
+        currentOrderId = order.order_id;
+        const content = document.getElementById('orderDetailContent');
+
+        // 构建订单详情HTML - 使用字符串拼接避免模板字符串嵌套问题
+        let detailHtml = '<div class="order-detail-section">';
+        detailHtml += '<h4 class="section-title">订单基本信息</h4>';
+        detailHtml += '<table class="detail-table">';
+        detailHtml += '<tr>';
+        detailHtml += '<th>订单ID</th>';
+        detailHtml += '<td>' + order.order_id + '</td>';
+        detailHtml += '<th>用户名</th>';
+        detailHtml += '<td>' + order.username + '</td>';
+        detailHtml += '<th>订单金额</th>';
+        detailHtml += '<td>¥' + order.total_amount + '</td>';
+        detailHtml += '</tr>';
+        detailHtml += '<tr>';
+        detailHtml += '<th>下单时间</th>';
+        detailHtml += '<td>' + order.create_time + '</td>';
+        detailHtml += '<th>订单状态</th>';
+        detailHtml += '<td>' + getStatusTag(order.status) + '</td>';
+        detailHtml += '<th>支付方式</th>';
+        detailHtml += '<td>' + (order.payment_method || '未选择') + '</td>';
+        detailHtml += '</tr>';
+        detailHtml += '</table>';
+        detailHtml += '</div>';
+
+        detailHtml += '<div class="order-detail-section">';
+        detailHtml += '<h4 class="section-title">收货地址信息</h4>';
+        detailHtml += '<table class="detail-table">';
+        detailHtml += '<tr>';
+        detailHtml += '<th>收货人</th>';
+        detailHtml += '<td>' + (order.address && order.address.name ? order.address.name : '未填写') + '</td>';
+        detailHtml += '<th>联系电话</th>';
+        detailHtml += '<td>' + (order.address && order.address.phone ? order.address.phone : '未填写') + '</td>';
+        detailHtml += '</tr>';
+        detailHtml += '<tr>';
+        detailHtml += '<th>收货地址</th>';
+        detailHtml += '<td colspan="3">' + (order.address ? (order.address.province || '') + ' ' + (order.address.city || '') + ' ' + (order.address.detail || '未填写') : '未填写') + '</td>';
+        detailHtml += '</tr>';
+        detailHtml += '</table>';
+        detailHtml += '</div>';
+
+        detailHtml += '<div class="order-detail-section">';
+        detailHtml += '<h4 class="section-title">订单商品列表</h4>';
+        detailHtml += '<div class="order-items-list">';
+        detailHtml += '<div class="items-list-header">商品信息</div>';
+        detailHtml += '<div class="items-list-body">';
+        detailHtml += '<table class="detail-table" style="width: 100%;">';
+        detailHtml += '<thead>';
+        detailHtml += '<tr>';
+        detailHtml += '<th>商品图片</th>';
+        detailHtml += '<th>商品名称</th>';
+        detailHtml += '<th>单价（元）</th>';
+        detailHtml += '<th>数量</th>';
+        detailHtml += '<th>小计（元）</th>';
+        detailHtml += '</tr>';
+        detailHtml += '</thead>';
+        detailHtml += '<tbody>';
+
+        // 拼接商品列表
+        order.items.forEach(function(item) {
+            const subtotal = (item.price * item.quantity).toFixed(2);
+            detailHtml += '<tr>';
+            detailHtml += '<td><img src="/static/admin/uploads/products/' + item.image + '" alt="' + item.name + '" style="width: 50px; height: 50px; object-fit: cover;"></td>';
+            detailHtml += '<td>' + item.name + '</td>';
+            detailHtml += '<td>¥' + item.price + '</td>';
+            detailHtml += '<td>' + item.quantity + '</td>';
+            detailHtml += '<td>¥' + subtotal + '</td>';
+            detailHtml += '</tr>';
+        });
+
+        detailHtml += '</tbody>';
+        detailHtml += '</table>';
+        detailHtml += '<div style="text-align: right; margin-top: 10px; font-size: 14px; font-weight: bold;">';
+        detailHtml += '合计：¥' + order.total_amount;
+        detailHtml += '</div>';
+        detailHtml += '</div>';
+        detailHtml += '</div>';
+        detailHtml += '</div>';
+
+        content.innerHTML = detailHtml;
+        modal.classList.add('active');
+    }
+
+    // 关闭弹窗
+    function closeModal() {
+        modal.classList.remove('active');
+    }
+
+    // 更新订单状态
+    document.getElementById('updateStatusBtn').addEventListener('click', function() {
+        const newStatus = prompt('请输入新的订单状态（待付款/已付款/已发货/已完成/已取消）：');
+        if (newStatus && ['待付款', '已付款', '已发货', '已完成', '已取消'].includes(newStatus)) {
+            fetch('/api/admin/update_order_status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    order_id: currentOrderId,
+                    status: newStatus
+                })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                alert(data.msg);
+                if (data.success) {
+                    closeModal();
+                    window.location.reload();
+                }
+            });
+        } else {
+            alert('请输入有效的订单状态！');
+        }
+    });
+
+    // 删除订单
+    function deleteOrder(orderId) {
+        if (confirm('确定要删除该订单吗？删除后不可恢复！')) {
+            fetch('/api/admin/delete_order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: orderId })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                alert(data.msg);
+                if (data.success) {
+                    window.location.reload();
+                }
+            });
+        }
+    }
+
+    // 点击模态框外部关闭
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+</script>
+{% endblock %}

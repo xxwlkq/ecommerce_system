@@ -1,0 +1,441 @@
+{% extends "base/admin_base.html" %}
+
+{% block title %}商品管理 - 后台管理中心{% endblock %}
+
+{% block css %}
+<style>
+    .product-manage-container {
+        padding: 20px;
+    }
+    .manage-title {
+        font-size: 24px;
+        margin-bottom: 30px;
+        font-weight: bold;
+        color: #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .add-btn {
+        padding: 8px 16px;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .search-bar {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .search-input {
+        flex: 1;
+        height: 36px;
+        padding: 0 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    .search-btn {
+        padding: 8px 16px;
+        background: #008CBA;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .product-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .product-table th, .product-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    .product-table th {
+        background: #f9f9f9;
+        font-weight: bold;
+        color: #333;
+    }
+    .product-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    .operate-btn {
+        padding: 4px 8px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        margin-right: 5px;
+    }
+    .edit-btn {
+        background: #008CBA;
+        color: white;
+    }
+    .delete-btn {
+        background: #e74c3c;
+        color: white;
+    }
+    .status-tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+    }
+    .status-on {
+        background: #e8f5e9;
+        color: #27ae60;
+    }
+    .status-off {
+        background: #fce4ec;
+        color: #e74c3c;
+    }
+
+    /* 新增/编辑商品弹窗 */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .modal.active {
+        display: flex;
+    }
+    .modal-content {
+        background: white;
+        width: 600px;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+    .modal-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #666;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 14px;
+        color: #333;
+        font-weight: 500;
+    }
+    .form-input, .form-select, .form-textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    .form-textarea {
+        height: 100px;
+        resize: vertical;
+    }
+    .img-preview {
+        width: 120px;
+        height: 120px;
+        border: 1px dashed #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 5px;
+        overflow: hidden;
+    }
+    .img-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .cancel-btn {
+        padding: 8px 16px;
+        background: #f5f5f5;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .submit-btn {
+        padding: 8px 16px;
+        background: #008CBA;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-manage-container">
+    <div class="manage-title">
+        <span>商品管理</span>
+        <button class="add-btn" onclick="openModal()">新增商品</button>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" class="search-input" placeholder="搜索商品名称/ID">
+        <button class="search-btn">搜索</button>
+    </div>
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>商品ID</th>
+                <th>商品图片</th>
+                <th>商品名称</th>
+                <th>分类</th>
+                <th>价格（元）</th>
+                <th>库存</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.product_id }}</td>
+                <td><img src="/static/admin/uploads/products/{{ product.image }}" alt="{{ product.name }}" class="product-img"></td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.category }}</td>
+                <td>¥{{ product.price }}</td>
+                <td>{{ product.stock }}</td>
+                <!-- 修复：使用Jinja2条件语句而不是JavaScript三元表达式 -->
+                <td>
+                    {% if product.status == '上架' %}
+                    <span class="status-tag status-on">
+                    {% else %}
+                    <span class="status-tag status-off">
+                    {% endif %}
+                        {{ product.status | default('上架') }}
+                    </span>
+                </td>
+                <td>
+                    <button class="operate-btn edit-btn" onclick="openModal('{{ product|tojson|safe }}')">编辑</button>
+                    <button class="operate-btn delete-btn" onclick="deleteProduct('{{ product.product_id }}')">删除</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- 新增/编辑商品弹窗 -->
+<div class="modal" id="productModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modalTitle">新增商品</h3>
+            <button class="close-modal" onclick="closeModal()">×</button>
+        </div>
+        <form id="productForm" enctype="multipart/form-data">
+            <input type="hidden" id="productId">
+            <div class="form-group">
+                <label class="form-label">商品名称</label>
+                <input type="text" class="form-input" id="productName" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">商品分类</label>
+                <select class="form-select" id="productCategory" required>
+                    <option value="">选择分类</option>
+                    <option value="手机">手机</option>
+                    <option value="电脑">电脑</option>
+                    <option value="平板">平板</option>
+                    <option value="耳机">耳机</option>
+                    <option value="手表">手表</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">商品价格（元）</label>
+                <input type="number" class="form-input" id="productPrice" min="0.01" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">商品库存</label>
+                <input type="number" class="form-input" id="productStock" min="0" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">商品状态</label>
+                <select class="form-select" id="productStatus" required>
+                    <option value="上架">上架</option>
+                    <option value="下架">下架</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">商品图片</label>
+                <input type="file" class="form-input" id="productImage" accept="image/*">
+                <div class="img-preview" id="imgPreview">
+                    <span>预览图</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">商品描述</label>
+                <textarea class="form-textarea" id="productDescription"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="cancel-btn" onclick="closeModal()">取消</button>
+                <button type="submit" class="submit-btn">提交</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    const modal = document.getElementById('productModal');
+    let currentProduct = null;
+
+    // 打开弹窗（新增/编辑）
+    function openModal(productJson = null) {
+        if (productJson) {
+            // 编辑模式：解析JSON并填充表单
+            const product = JSON.parse(productJson);
+            currentProduct = product;
+            document.getElementById('modalTitle').textContent = '编辑商品';
+            document.getElementById('productId').value = product.product_id;
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productCategory').value = product.category;
+            document.getElementById('productPrice').value = product.price;
+            document.getElementById('productStock').value = product.stock;
+            document.getElementById('productStatus').value = product.status || '上架'; // 默认上架
+            document.getElementById('productDescription').value = product.description || '';
+            // 预览图
+            const preview = document.getElementById('imgPreview');
+            preview.innerHTML = '<img src="/static/admin/uploads/products/' + product.image + '" alt="' + product.name + '">';
+        } else {
+            // 新增模式：清空表单
+            currentProduct = null;
+            document.getElementById('modalTitle').textContent = '新增商品';
+            document.getElementById('productForm').reset();
+            document.getElementById('productStatus').value = '上架'; // 默认上架
+            document.getElementById('imgPreview').innerHTML = '<span>预览图</span>';
+        }
+        modal.classList.add('active');
+    }
+
+    // 关闭弹窗
+    function closeModal() {
+        modal.classList.remove('active');
+    }
+
+    // 图片预览
+    document.getElementById('productImage').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('imgPreview').innerHTML = '<img src="' + event.target.result + '" alt="预览图">';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // 提交表单（新增/编辑商品）
+    document.getElementById('productForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('name', document.getElementById('productName').value);
+        formData.append('category', document.getElementById('productCategory').value);
+        formData.append('price', document.getElementById('productPrice').value);
+        formData.append('stock', document.getElementById('productStock').value);
+        formData.append('status', document.getElementById('productStatus').value); // 新增状态字段
+        formData.append('description', document.getElementById('productDescription').value);
+        
+        // 图片文件（新增或修改时上传）
+        const imageFile = document.getElementById('productImage').files[0];
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
+        // 编辑模式：添加商品ID
+        const productId = document.getElementById('productId').value;
+        if (productId) {
+            formData.append('product_id', productId);
+        }
+
+        // 调用后端接口
+        const url = productId ? '/api/admin/update_product' : '/api/admin/add_product';
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            alert(data.msg);
+            if (data.success) {
+                closeModal();
+                window.location.reload(); // 刷新页面显示最新商品
+            }
+        })
+        .catch(function(err) {
+            alert('操作失败，请重试！');
+            console.error(err);
+        });
+    });
+
+    // 删除商品
+    function deleteProduct(productId) {
+        if (confirm('确定要删除该商品吗？删除后不可恢复！')) {
+            fetch('/api/admin/delete_product', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                alert(data.msg);
+                if (data.success) {
+                    window.location.reload();
+                }
+            });
+        }
+    }
+
+    // 点击模态框外部关闭
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+</script>
+{% endblock %}

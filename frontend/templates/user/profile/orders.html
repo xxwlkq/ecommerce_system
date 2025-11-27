@@ -1,0 +1,242 @@
+{% extends "base/base.html" %}
+
+{% block title %}我的订单 - 电子商务系统{% endblock %}
+
+{% block css %}
+<style>
+    .profile-container {
+        display: flex;
+        gap: 30px;
+    }
+    .profile-sidebar {
+        width: 200px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .user-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: #008CBA;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        margin: 0 auto 15px;
+    }
+    .user-name {
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .profile-menu {
+        margin-top: 30px;
+    }
+    .menu-item {
+        display: block;
+        padding: 12px 0;
+        color: #333;
+        text-decoration: none;
+        border-bottom: 1px solid #eee;
+    }
+    .menu-item:hover, .menu-item.active {
+        color: #008CBA;
+        font-weight: bold;
+    }
+    .profile-content {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        border: 1px solid #eee;
+    }
+    .content-title {
+        font-size: 22px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    .order-filter {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .filter-btn {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+    }
+    .filter-btn.active {
+        background: #008CBA;
+        color: white;
+        border-color: #008CBA;
+    }
+    .order-list {
+        margin-top: 20px;
+    }
+    .order-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    .order-header {
+        background: #f9f9f9;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .order-id {
+        font-size: 14px;
+        color: #666;
+    }
+    .order-status {
+        color: #27ae60;
+        font-weight: bold;
+    }
+    .order-items {
+        padding: 15px;
+    }
+    .order-item {
+        display: flex;
+        gap: 15px;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .order-item-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    .order-item-info {
+        flex: 1;
+    }
+    .order-item-name {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    .order-item-attr {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+    .order-item-price {
+        color: #e74c3c;
+        font-weight: bold;
+    }
+    .order-item-quantity {
+        color: #666;
+        margin-left: 10px;
+    }
+    .order-footer {
+        padding: 15px;
+        text-align: right;
+    }
+    .order-total {
+        font-size: 18px;
+        color: #e74c3c;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .order-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-left: 10px;
+    }
+    .detail-btn {
+        background: #008CBA;
+        color: white;
+    }
+    .cancel-btn {
+        background: #e74c3c;
+        color: white;
+    }
+    .empty-orders {
+        text-align: center;
+        padding: 80px 0;
+        color: #666;
+    }
+    .empty-orders a {
+        color: #008CBA;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- 侧边栏菜单 -->
+    <div class="profile-sidebar">
+        <div class="user-avatar">{{ user_info.username[0] }}</div>
+        <div class="user-name">{{ user_info.username }}</div>
+        <div class="profile-menu">
+            <a href="/profile" class="menu-item">个人信息</a>
+            <a href="/profile/orders" class="menu-item active">我的订单</a>
+            <a href="/profile/favorites" class="menu-item">我的收藏</a>
+            <a href="/profile/addresses" class="menu-item">收货地址</a>
+            <a href="/profile/recharge" class="menu-item">余额充值</a>
+        </div>
+    </div>
+
+    <!-- 主体内容 -->
+    <div class="profile-content">
+        <h2 class="content-title">我的订单</h2>
+        <div class="order-filter">
+            <button class="filter-btn active">全部订单</button>
+            <button class="filter-btn">待付款</button>
+            <button class="filter-btn">待发货</button>
+            <button class="filter-btn">待收货</button>
+            <button class="filter-btn">已完成</button>
+            <button class="filter-btn">已取消</button>
+        </div>
+
+        {% if orders %}
+            <div class="order-list">
+                {% for order in orders %}
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-id">订单编号：{{ order.order_id }}</div>
+                        <div class="order-status">{{ order.status }}</div>
+                        <div class="order-time">下单时间：{{ order.create_time }}</div>
+                    </div>
+                    <div class="order-items">
+                        <!-- 正确语法：用 is iterable 替代 is list，兼容 Jinja2 模板 -->
+                        {% for item in (order.items if (order is defined and order.items is defined and order.items is iterable) else []) %}
+                        <div class="order-item">
+                            <img src="/static/admin/uploads/products/{{ item.image|default('default.jpg') }}" alt="{{ item.name }}">
+                            <div class="order-item-info">
+                                <div class="order-item-name">{{ item.name }}</div>
+                                <div class="order-item-attr">分类：{{ item.category|default('未知分类') }}</div>
+                                <div class="order-item-price">¥{{ "%.2f"|format(item.price) }} <span class="order-item-quantity">x{{ item.quantity }}</span></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="order-footer">
+                        <div class="order-total">实付款：¥{{ order.total_amount }}</div>
+                        <button class="order-btn detail-btn">查看详情</button>
+                        {% if order.status == '待付款' %}
+                            <button class="order-btn cancel-btn">取消订单</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-orders">
+                <h3>暂无订单记录</h3>
+                <p>快去 <a href="/products">购物</a> 吧！</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

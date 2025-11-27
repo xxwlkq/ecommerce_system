@@ -1,0 +1,195 @@
+{% extends "base/base.html" %}
+
+{% block title %}余额充值 - 电子商务系统{% endblock %}
+
+{% block css %}
+<style>
+    .profile-container {
+        display: flex;
+        gap: 30px;
+    }
+    .profile-sidebar {
+        width: 200px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .user-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: #008CBA;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        margin: 0 auto 15px;
+    }
+    .user-name {
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .profile-menu {
+        margin-top: 30px;
+    }
+    .menu-item {
+        display: block;
+        padding: 12px 0;
+        color: #333;
+        text-decoration: none;
+        border-bottom: 1px solid #eee;
+    }
+    .menu-item:hover, .menu-item.active {
+        color: #008CBA;
+        font-weight: bold;
+    }
+    .profile-content {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        border: 1px solid #eee;
+    }
+    .content-title {
+        font-size: 22px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    .balance-card {
+        background: #f0f7ff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    .balance-title {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 10px;
+    }
+    .balance-amount {
+        font-size: 36px;
+        color: #008CBA;
+        font-weight: bold;
+    }
+    .recharge-form {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    .amount-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .amount-option {
+        width: 100px;
+        height: 40px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .amount-option:hover, .amount-option.active {
+        border-color: #008CBA;
+        background: #f0f7ff;
+        color: #008CBA;
+        font-weight: bold;
+    }
+    .custom-amount {
+        margin-bottom: 20px;
+    }
+    .custom-input {
+        width: 100%;
+        height: 40px;
+        padding: 0 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+    .payment-methods {
+        margin-bottom: 30px;
+    }
+    .payment-method {
+        display: flex;
+        align-items: center;
+        margin: 10px 0;
+        cursor: pointer;
+    }
+    .payment-radio {
+        margin-right: 10px;
+    }
+    .payment-label {
+        font-size: 16px;
+    }
+    .recharge-btn {
+        width: 100%;
+        height: 50px;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .recharge-btn:hover {
+        background: #c0392b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- 侧边栏菜单 -->
+    <div class="profile-sidebar">
+        <div class="user-avatar">{{ user_info.username[0] }}</div>
+        <div class="user-name">{{ user_info.username }}</div>
+        <div class="profile-menu">
+            <a href="/profile" class="menu-item">个人信息</a>
+            <a href="/profile/orders" class="menu-item">我的订单</a>
+            <a href="/profile/favorites" class="menu-item">我的收藏</a>
+            <a href="/profile/addresses" class="menu-item">收货地址</a>
+            <a href="/profile/recharge" class="menu-item active">余额充值</a>
+        </div>
+    </div>
+
+    <!-- 主体内容 -->
+    <div class="profile-content">
+        <h2 class="content-title">余额充值</h2>
+
+        <div class="balance-card">
+            <div class="balance-title">当前账户余额</div>
+            <div class="balance-amount">¥{{ user_info.balance or '0.00' }}</div>
+        </div>
+
+        <div class="recharge-form">
+            <div class="amount-options">
+                <div class="amount-option" onclick="selectAmount(100)">¥100</div>
+                <div class="amount-option" onclick="selectAmount(200)">¥200</div>
+                <div class="amount-option" onclick="selectAmount(500)">¥500</div>
+                <div class="amount-option" onclick="selectAmount(1000)">¥1000</div>
+                <div class="amount-option" onclick="selectAmount(2000)">¥2000</div>
+            </div>
+
+            <div class="custom-amount">
+                <input type="number" class="custom-input" id="customAmount" placeholder="自定义充值金额（元）" min="1">
+            </div>
+
+            <div class="payment-methods">
+                <div class="payment-method">
+                    <input type="radio" name="payment" class="payment-radio" id="wechat" checked>
+                    <label for="wechat" class="payment-label">微信支付</label>
+                </div>
+                <div class="payment-method">
+                    <input type="radio" name="payment" class="payment-radio" id="alipay">
+                    <label for="alipay" class="payment-label">支付宝支付</label>
+                </div>
+                <div class="payment-method">
+                    <input type="radio" name="payment"

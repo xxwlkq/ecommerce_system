@@ -1,0 +1,331 @@
+{% extends "base/base.html" %}
+
+{% block title %}我的购物车 - 电商系统{% endblock %}
+
+{% block css %}
+<style>
+    .cart-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+    .cart-title {
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    .cart-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #eee;
+    }
+    .cart-table th, .cart-table td {
+        padding: 15px;
+        text-align: center;
+        border-bottom: 1px solid #eee;
+    }
+    .cart-table th {
+        background-color: #f9f9f9;
+        font-weight: 600;
+        color: #666;
+    }
+    .product-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    .quantity-control {
+        display: inline-flex;
+        align-items: center;
+    }
+    .quantity-btn {
+        width: 30px;
+        height: 30px;
+        border: 1px solid #ddd;
+        background: #f5f5f5;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .quantity-btn:hover {
+        background: #eee;
+    }
+    .quantity-input {
+        width: 50px;
+        height: 30px;
+        border: 1px solid #ddd;
+        border-left: none;
+        border-right: none;
+        text-align: center;
+        outline: none;
+    }
+    .delete-btn {
+        color: #e74c3c;
+        cursor: pointer;
+        text-decoration: underline;
+        transition: color 0.2s;
+    }
+    .delete-btn:hover {
+        color: #c0392b;
+    }
+    .cart-summary {
+        margin-top: 20px;
+        text-align: right;
+        padding: 20px;
+        border-top: 1px solid #eee;
+    }
+    .total-count {
+        margin-bottom: 10px;
+        color: #666;
+    }
+    .total-price {
+        font-size: 18px;
+        color: #e74c3c;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .checkout-btn {
+        padding: 12px 30px;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+    }
+    .checkout-btn:hover {
+        background: #219653;
+    }
+    .checkout-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+    .empty-cart {
+        text-align: center;
+        padding: 50px 0;
+        color: #999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+    <h2 class="cart-title">我的购物车</h2>
+
+    {% if cart_items and cart_items|length > 0 %}
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th>商品图片</th>
+                    <th>商品名称</th>
+                    <th>单价</th>
+                    <th>数量</th>
+                    <th>小计</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                    <tr data-product-id="{{ item.product_id }}">
+                        <td>
+                            <img src="/static/admin/uploads/products/{{ item.image|default('default-product.png') }}" 
+                                 alt="{{ item.name }}" class="product-img">
+                        </td>
+                        <td>{{ item.name }}</td>
+                        <td>¥{{ "%.2f"|format(item.price) }}</td>
+                        <td>
+                            <div class="quantity-control">
+                                <!-- 减少数量按钮 -->
+                                <button class="quantity-btn minus" 
+                                        data-product-id="{{ item.product_id }}">-</button>
+                                <input type="number" class="quantity-input" 
+                                       value="{{ item.quantity }}" 
+                                       min="1" 
+                                       max="{{ item.stock }}"
+                                       data-product-id="{{ item.product_id }}"
+                                       oninput="this.value = Math.min(this.max, Math.max(this.min, this.value))" />
+                                <!-- 增加数量按钮 -->
+                                <button class="quantity-btn plus" 
+                                        data-product-id="{{ item.product_id }}">+</button>
+                            </div>
+                        </td>
+                        <!-- 复用后端计算的subtotal，避免重复计算 -->
+                        <td>¥{{ "%.2f"|format(item.subtotal) }}</td>
+                        <td>
+                            <!-- 删除按钮 -->
+                            <span class="delete-btn" 
+                                  data-product-id="{{ item.product_id }}">删除</span>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="cart-summary">
+            <!-- 修复变量名：total_count → total_quantity（与后端传递一致） -->
+            <div class="total-count">商品总数：{{ total_quantity }} 件</div>
+            <div class="total-price">应付总额：¥{{ "%.2f"|format(total_amount) }}</div>
+            <!-- 结算按钮 -->
+            <button class="checkout-btn" id="checkoutBtn">去结算</button>
+        </div>
+    {% else %}
+        <div class="empty-cart">
+            <p>您的购物车是空的，快去添加商品吧～</p>
+            <a href="/products" style="color: #008CBA; margin-top: 10px; display: inline-block;">
+                去商品列表
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+// 从DOM加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. 数量更新功能
+    setupQuantityUpdate();
+    
+    // 2. 删除商品功能
+    setupDeleteItem();
+    
+    // 3. 结算功能
+    setupCheckout();
+});
+
+// 数量更新功能
+function setupQuantityUpdate() {
+    // 减少数量按钮
+    document.querySelectorAll('.quantity-btn.minus').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
+            let currentQty = parseInt(input.value);
+            
+            if (currentQty > 1) {
+                input.value = currentQty - 1;
+                updateCartQuantity(productId, currentQty - 1);
+            } else {
+                alert('数量不能少于1件！');
+            }
+        });
+    });
+
+    // 增加数量按钮（优化库存提示：显示具体库存数）
+    document.querySelectorAll('.quantity-btn.plus').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
+            const maxStock = parseInt(input.max); // 获取商品实际库存
+            let currentQty = parseInt(input.value);
+            
+            if (currentQty < maxStock) {
+                input.value = currentQty + 1;
+                updateCartQuantity(productId, currentQty + 1);
+            } else {
+                // 提示具体库存，避免用户困惑
+                alert(`已达最大库存（仅剩${maxStock}件）！`);
+            }
+        });
+    });
+
+    // 直接输入数量（强制限制在1~maxStock之间）
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const productId = this.dataset.productId;
+            const maxStock = parseInt(this.max);
+            let currentQty = parseInt(this.value) || 1;
+            
+            // 边界校验（双重保障）
+            if (currentQty < 1) currentQty = 1;
+            if (currentQty > maxStock) currentQty = maxStock;
+            this.value = currentQty;
+            
+            updateCartQuantity(productId, currentQty);
+        });
+    });
+}
+
+// 发送更新数量请求到后端
+function updateCartQuantity(productId, quantity) {
+    fetch('/api/cart/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            product_id: productId,
+            quantity: quantity
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP错误：${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // 刷新页面更新最新数据（简单高效）
+            window.location.reload();
+        } else {
+            // 显示后端返回的具体错误（如库存不足）
+            alert(`更新失败：${data.msg}`);
+        }
+    })
+    .catch(error => {
+        console.error('更新数量失败：', error);
+        alert('网络异常，更新失败，请重试！');
+    });
+}
+
+// 删除商品功能
+function setupDeleteItem() {
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            if (confirm('确定要删除这件商品吗？删除后不可恢复～')) {
+                fetch('/api/cart/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        product_id: productId
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP错误：${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        alert('删除成功！');
+                        window.location.reload();
+                    } else {
+                        alert(`删除失败：${data.msg}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('删除失败：', error);
+                    alert('网络异常，删除失败，请重试！');
+                });
+            }
+        });
+    });
+}
+
+// 结算功能
+function setupCheckout() {
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function() {
+            // 跳转到结算页面（已适配你的checkout.html）
+            window.location.href = '/checkout';
+        });
+    }
+}
+</script>
+{% endblock %}

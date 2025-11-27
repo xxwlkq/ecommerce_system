@@ -1,0 +1,134 @@
+{% extends "base/base.html" %}
+
+{% block title %}个人中心 - 电子商务系统{% endblock %}
+
+{% block css %}
+<style>
+    .profile-container {
+        display: flex;
+        gap: 30px;
+    }
+    .profile-sidebar {
+        width: 200px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .user-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: #008CBA;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        margin: 0 auto 15px;
+    }
+    .user-name {
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .profile-menu {
+        margin-top: 30px;
+    }
+    .menu-item {
+        display: block;
+        padding: 12px 0;
+        color: #333;
+        text-decoration: none;
+        border-bottom: 1px solid #eee;
+        transition: color 0.3s;
+    }
+    .menu-item:hover, .menu-item.active {
+        color: #008CBA;
+        font-weight: bold;
+    }
+    .profile-content {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        border: 1px solid #eee;
+    }
+    .content-title {
+        font-size: 22px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    .info-list {
+        margin-top: 20px;
+    }
+    .info-item {
+        display: flex;
+        margin: 15px 0;
+        font-size: 16px;
+    }
+    .info-label {
+        width: 120px;
+        color: #666;
+    }
+    .info-value {
+        flex: 1;
+        color: #333;
+    }
+    .edit-btn {
+        padding: 8px 16px;
+        background: #008CBA;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- 侧边栏菜单 -->
+    <div class="profile-sidebar">
+        <div class="user-avatar">{{ user_info.username[0] }}</div>
+        <div class="user-name">{{ user_info.username }}</div>
+        <div class="profile-menu">
+            <a href="/profile" class="menu-item active">个人信息</a>
+            <a href="/profile/orders" class="menu-item">我的订单</a>
+            <a href="/profile/favorites" class="menu-item">我的收藏</a>
+            <a href="/profile/addresses" class="menu-item">收货地址</a>
+            <a href="/profile/recharge" class="menu-item">余额充值</a>
+        </div>
+    </div>
+
+    <!-- 主体内容 -->
+    <div class="profile-content">
+        <h2 class="content-title">个人信息</h2>
+        <div class="info-list">
+            <div class="info-item">
+                <span class="info-label">用户名：</span>
+                <span class="info-value">{{ user_info.username }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">用户ID：</span>
+                <span class="info-value">{{ user_info.user_id }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">邮箱：</span>
+                <span class="info-value">{{ user_info.email }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">注册时间：</span>
+                <span class="info-value">{{ user_info.register_time or '未知' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">账户余额：</span>
+                <span class="info-value" style="color: #e74c3c; font-weight: bold;">¥{{ user_info.balance or '0.00' }}</span>
+            </div>
+        </div>
+        <button class="edit-btn">编辑个人信息</button>
+    </div>
+</div>
+{% endblock %}

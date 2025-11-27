@@ -1,0 +1,256 @@
+{% extends "base/admin_base.html" %}
+
+{% block title %}数据导出 - 后台管理中心{% endblock %}
+
+{% block css %}
+<style>
+    .export-container {
+        padding: 20px;
+    }
+    .export-title {
+        font-size: 24px;
+        margin-bottom: 30px;
+        font-weight: bold;
+        color: #333;
+    }
+    .export-desc {
+        color: #666;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+    .export-cards {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+    }
+    .export-card {
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        flex-direction: column;
+    }
+    .card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .card-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        background: #f0f7ff;
+        color: #008CBA;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-right: 15px;
+    }
+    .card-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+    .card-desc {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+    .filter-options {
+        margin-bottom: 20px;
+    }
+    .filter-group {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+    }
+    .filter-label {
+        width: 80px;
+        font-size: 14px;
+        color: #333;
+    }
+    .filter-input, .filter-select {
+        flex: 1;
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    .export-btn {
+        margin-top: auto;
+        padding: 12px 0;
+        background: #008CBA;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+    }
+    .export-btn:hover {
+        background: #006ba1;
+    }
+    .batch-export {
+        margin-top: 30px;
+        text-align: center;
+    }
+    .batch-btn {
+        padding: 12px 30px;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="export-container">
+    <h1 class="export-title">数据导出</h1>
+    <p class="export-desc">支持导出系统各类数据（Excel格式），可选择时间范围或筛选条件精准导出，导出文件包含完整字段信息，便于数据分析和备份。</p>
+
+    <div class="export-cards">
+        <!-- 商品数据导出 -->
+        <div class="export-card">
+            <div class="card-header">
+                <div class="card-icon">📦</div>
+                <h3 class="card-title">商品数据</h3>
+            </div>
+            <p class="card-desc">导出所有商品的基础信息（ID、名称、价格、库存、分类等）</p>
+            <div class="filter-options">
+                <div class="filter-group">
+                    <label class="filter-label">商品分类</label>
+                    <select class="filter-select" id="productCategoryFilter">
+                        <option value="">全部分类</option>
+                        <option value="手机">手机</option>
+                        <option value="电脑">电脑</option>
+                        <option value="平板">平板</option>
+                        <option value="耳机">耳机</option>
+                        <option value="手表">手表</option>
+                    </select>
+                </div>
+            </div>
+            <button class="export-btn" onclick="exportData('products')">导出商品数据</button>
+        </div>
+
+        <!-- 用户数据导出 -->
+        <div class="export-card">
+            <div class="card-header">
+                <div class="card-icon">👥</div>
+                <h3 class="card-title">用户数据</h3>
+            </div>
+            <p class="card-desc">导出所有用户的基础信息（ID、用户名、余额、注册时间等）</p>
+            <div class="filter-options">
+                <div class="filter-group">
+                    <label class="filter-label">用户状态</label>
+                    <select class="filter-select" id="userStatusFilter">
+                        <option value="">全部状态</option>
+                        <option value="normal">正常</option>
+                        <option value="disabled">禁用</option>
+                    </select>
+                </div>
+            </div>
+            <button class="export-btn" onclick="exportData('users')">导出用户数据</button>
+        </div>
+
+        <!-- 订单数据导出 -->
+        <div class="export-card">
+            <div class="card-header">
+                <div class="card-icon">💵</div>
+                <h3 class="card-title">订单数据</h3>
+            </div>
+            <p class="card-desc">导出所有订单的完整信息（订单ID、用户、商品、金额、状态等）</p>
+            <div class="filter-options">
+                <div class="filter-group">
+                    <label class="filter-label">时间范围</label>
+                    <input type="date" class="filter-input" id="orderStartDate">
+                    <input type="date" class="filter-input" id="orderEndDate" style="margin-left: 10px;">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">订单状态</label>
+                    <select class="filter-select" id="orderStatusFilter">
+                        <option value="">全部状态</option>
+                        <option value="待付款">待付款</option>
+                        <option value="已付款">已付款</option>
+                        <option value="已发货">已发货</option>
+                        <option value="已完成">已完成</option>
+                        <option value="已取消">已取消</option>
+                    </select>
+                </div>
+            </div>
+            <button class="export-btn" onclick="exportData('orders')">导出订单数据</button>
+        </div>
+
+        <!-- 用户行为数据导出 -->
+        <div class="export-card">
+            <div class="card-header">
+                <div class="card-icon">📊</div>
+                <h3 class="card-title">用户行为数据</h3>
+            </div>
+            <p class="card-desc">导出用户的行为记录（浏览、加购、收藏、购买等操作日志）</p>
+            <div class="filter-options">
+                <div class="filter-group">
+                    <label class="filter-label">时间范围</label>
+                    <input type="date" class="filter-input" id="actionStartDate">
+                    <input type="date" class="filter-input" id="actionEndDate" style="margin-left: 10px;">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">行为类型</label>
+                    <select class="filter-select" id="actionTypeFilter">
+                        <option value="">全部类型</option>
+                        <option value="view">浏览</option>
+                        <option value="add_to_cart">加购</option>
+                        <option value="favorite">收藏</option>
+                        <option value="purchase">购买</option>
+                    </select>
+                </div>
+            </div>
+            <button class="export-btn" onclick="exportData('user_actions')">导出行为数据</button>
+        </div>
+    </div>
+
+    <div class="batch-export">
+        <button class="batch-btn" onclick="batchExport()">批量导出所有数据</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    // 单个数据类型导出
+    function exportData(dataType) {
+        // 收集筛选条件（根据数据类型动态获取）
+        let params = { data_type: dataType };
+
+        if (dataType === 'products') {
+            params.category = document.getElementById('productCategoryFilter').value;
+        } else if (dataType === 'users') {
+            params.status = document.getElementById('userStatusFilter').value;
+        } else if (dataType === 'orders') {
+            params.start_date = document.getElementById('orderStartDate').value;
+            params.end_date = document.getElementById('orderEndDate').value;
+            params.status = document.getElementById('orderStatusFilter').value;
+        } else if (dataType === 'user_actions') {
+            params.start_date = document.getElementById('actionStartDate').value;
+            params.end_date = document.getElementById('actionEndDate').value;
+            params.action_type = document.getElementById('actionTypeFilter').value;
+        }
+
+        // 拼接参数并跳转下载
+        const queryString = new URLSearchParams(params).toString();
+        window.location.href = `/api/admin/export?${queryString}`;
+    }
+
+    // 批量导出所有数据
+    function batchExport() {
+        if (confirm('确定要批量导出所有数据吗？文件可能较大，请耐心等待！')) {
+            window.location.href = `/api/admin/export_batch`;
+        }
+    }
+</script>
+{% endblock %}

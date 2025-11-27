@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}后台管理中心{% endblock %}</title>
+    <!-- 引入后台端公共CSS -->
+    <link rel="stylesheet" href="/static/admin/css/common.css">
+    <!-- 页面专属CSS -->
+    {% block css %}{% endblock %}
+</head>
+<body>
+    <!-- 后台导航栏 -->
+    <header class="admin-navbar">
+        <div class="container">
+            <a href="/admin" class="admin-logo">后台管理中心</a>
+            <nav class="admin-nav">
+                <a href="/admin">数据看板</a>  <!-- 正确：对应 /admin 路由 -->
+                <a href="/admin/product_manage">商品管理</a>  <!-- 修正：对应 /admin/product_manage 路由 -->
+                <a href="/admin/user_manage">用户管理</a>    <!-- 修正：对应 /admin/user_manage 路由 -->
+                <a href="/admin/order_manage">订单管理</a>  <!-- 修正：对应 /admin/order_manage 路由 -->
+                <a href="/admin/data_export">数据导出</a>    <!-- 修正：对应 /admin/data_export 路由 -->
+            </nav>
+            <div class="admin-user">
+                <span>管理员</span>
+                <a href="/api/logout">退出</a>
+                <a href="/" class="go-frontend">返回前台</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 后台主体内容 -->
+    <main class="admin-container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 后台页脚 -->
+    <footer class="admin-footer">
+        <p>© 2025 后台管理系统 - 仅管理员访问</p>
+    </footer>
+
+    <!-- 引入公共JS -->
+    <script src="/static/admin/js/common.js"></script>
+    <!-- 页面专属JS -->
+    {% block js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}电子商务系统{% endblock %}</title>
+    <!-- 引入用户端公共CSS（后续在static文件夹创建） -->
+    <link rel="stylesheet" href="/static/user/css/common.css">
+    <!-- 页面专属CSS（子页面可覆盖） -->
+    {% block css %}{% endblock %}
+</head>
+<body>
+    <!-- 公共导航栏 -->
+    <header class="navbar">
+        <div class="container">
+            <a href="/" class="logo">电商系统</a>
+            <nav class="nav-links">
+                <a href="/">首页</a>
+                <a href="/products">商品列表</a>
+                <a href="/cart">购物车</a>
+                <a href="/profile">个人中心</a>
+                <a href="/admin" class="admin-link">后台管理</a>
+            </nav>
+            <div class="user-info">
+                {% if session.username %}
+                    <span>欢迎，{{ session.username }}</span>
+                    <a href="/api/logout">退出登录</a>
+                {% else %}
+                    <a href="javascript:login()">登录</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- 页面主体内容（子页面填充） -->
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 公共页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 电子商务系统 - 模拟购物平台</p>
+        </div>
+    </footer>
+
+    <!-- 引入公共JS -->
+    <script src="/static/user/js/common.js"></script>
+    <!-- 登录弹窗逻辑 -->
+    <script>
+        function login() {
+            const username = prompt('请输入用户名登录：');
+            if (username) {
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.msg);
+                    if (data.success) window.location.reload();
+                });
+            }
+        }
+    </script>
+    <!-- 页面专属JS（子页面可覆盖） -->
+    {% block js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,380 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ product.name }} - 商品详情{% endblock %}
+
+{% block css %}
+<style>
+    .product-detail-container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 0 20px;
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+    .product-img-wrapper {
+        flex: 1;
+        min-width: 300px;
+    }
+    .main-img {
+        width: 100%;
+        max-width: 500px;
+        height: auto;
+        border-radius: 8px;
+        border: 1px solid #eee;
+    }
+    .product-info {
+        flex: 1;
+        min-width: 300px;
+        padding: 20px 0;
+    }
+    .product-name {
+        font-size: 24px;
+        margin-bottom: 15px;
+        color: #333;
+        line-height: 1.3;
+    }
+    .product-price {
+        font-size: 28px;
+        color: #e74c3c;
+        font-weight: bold;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    .product-stock {
+        margin-bottom: 20px;
+        color: #666;
+        font-size: 14px;
+    }
+    .stock-status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        margin-left: 10px;
+    }
+    .stock-available {
+        background: #e8f5e9;
+        color: #27ae60;
+    }
+    .stock-unavailable {
+        background: #fce4ec;
+        color: #e74c3c;
+    }
+    .product-desc {
+        line-height: 1.8;
+        color: #666;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        font-size: 14px;
+    }
+    .operate-btns {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .quantity-btn {
+        width: 36px;
+        height: 36px;
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 18px;
+        border: none;
+        outline: none;
+    }
+    .quantity-btn:hover {
+        background: #eee;
+    }
+    .quantity-input {
+        width: 60px;
+        height: 36px;
+        border: none;
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        text-align: center;
+        font-size: 16px;
+        outline: none;
+    }
+    .add-cart-btn {
+        padding: 12px 40px;
+        background: #008CBA;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: 500;
+        flex: 1;
+        min-width: 150px;
+    }
+    .add-cart-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+    .favorite-btn {
+        padding: 12px 20px;
+        background: #f5f5f5;
+        color: #333;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        min-width: 100px;
+    }
+    .favorite-btn.active {
+        color: #e74c3c;
+        border-color: #e74c3c;
+        background: #fef0f3;
+    }
+    .section-title {
+        font-size: 20px;
+        margin: 40px 0 20px;
+        padding-left: 20px;
+        border-left: 4px solid #008CBA;
+        color: #333;
+    }
+    .product-detail-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px 50px;
+        line-height: 2;
+        color: #555;
+        font-size: 14px;
+    }
+    .icon-star {
+        font-size: 18px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-detail-container">
+    <div class="product-img-wrapper">
+        <!-- 商品图片：如果没有图片，显示默认图（确保default-product.png存在，或替换成你有的默认图） -->
+        <img src="/static/admin/uploads/products/{{ product.image|default('default-product.png') }}" 
+             alt="{{ product.name|default('商品图片') }}" 
+             class="main-img">
+    </div>
+    <div class="product-info">
+        <h1 class="product-name">{{ product.name|default('未知商品') }}</h1>
+        <div class="product-price">¥{{ "%.2f"|format(product.price|default(0.00)) }}</div>
+        <div class="product-stock">
+            库存：{{ product.stock|default(0) }} 件
+            <span class="stock-status 
+                {% if product.stock|default(0) > 0 %}stock-available{% else %}stock-unavailable{% endif %}">
+                {% if product.stock|default(0) > 0 %}有货{% else %}无货{% endif %}
+            </span>
+        </div>
+        <div class="product-desc">
+            {{ product.description|default('暂无商品描述') }}
+        </div>
+        <div class="operate-btns">
+            <div class="quantity-control">
+                <button class="quantity-btn" id="decreaseBtn">-</button>
+                <input type="number" class="quantity-input" id="quantityInput" value="1" min="1" 
+                       max="{{ product.stock|default(1) }}">
+                <button class="quantity-btn" id="increaseBtn">+</button>
+            </div>
+            <button class="add-cart-btn" id="addToCartBtn" 
+                    {% if product.stock|default(0) <= 0 %}disabled{% endif %}>
+                加入购物车
+            </button>
+            <button class="favorite-btn {% if product.is_favorite|default(false) %}active{% endif %}" 
+                    id="favoriteBtn">
+                <span class="icon-star">
+                    {% if product.is_favorite|default(false) %}★{% else %}☆{% endif %}
+                </span>
+                <span id="favoriteText">
+                    {% if product.is_favorite|default(false) %}已收藏{% else %}收藏{% endif %}
+                </span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<h3 class="section-title">商品详情</h3>
+<div class="product-detail-content">
+    {{ product.detail|default('暂无详细介绍') }}
+</div>
+
+<!-- 数据存储区域 - 用于JavaScript获取数据 -->
+<div id="productData" 
+     data-product-id="{{ product.product_id|default(0) }}"
+     data-product-stock="{{ product.stock|default(1) }}"
+     data-is-favorite="{% if product.is_favorite|default(false) %}true{% else %}false{% endif %}">
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+// 从数据存储区域获取产品信息
+const productDataElement = document.getElementById('productData');
+const productId = parseInt(productDataElement.dataset.productId) || 0;
+const maxStock = parseInt(productDataElement.dataset.productStock) || 1;
+let isFavorite = productDataElement.dataset.isFavorite === 'true';
+
+// DOM元素引用
+const quantityInput = document.getElementById('quantityInput');
+const decreaseBtn = document.getElementById('decreaseBtn');
+const increaseBtn = document.getElementById('increaseBtn');
+const addToCartBtn = document.getElementById('addToCartBtn');
+const favoriteBtn = document.getElementById('favoriteBtn');
+const favoriteText = document.getElementById('favoriteText');
+const favoriteIcon = favoriteBtn.querySelector('.icon-star');
+
+// 数量控制功能
+function setupQuantityControls() {
+    decreaseBtn.addEventListener('click', function() {
+        let current = parseInt(quantityInput.value);
+        if (current > 1) {
+            quantityInput.value = current - 1;
+        }
+    });
+
+    increaseBtn.addEventListener('click', function() {
+        let current = parseInt(quantityInput.value);
+        if (current < maxStock) {
+            quantityInput.value = current + 1;
+        } else {
+            alert('已达最大库存！');
+        }
+    });
+
+    quantityInput.addEventListener('input', function() {
+        let current = parseInt(this.value) || 1;
+        if (current < 1) current = 1;
+        if (current > maxStock) current = maxStock;
+        this.value = current;
+    });
+}
+
+// 加入购物车功能（修正API路径：和后端app.py的/api/add_to_cart对应）
+function setupAddToCart() {
+    addToCartBtn.addEventListener('click', function() {
+        const quantity = parseInt(quantityInput.value);
+        
+        // 1. 基础校验
+        if (productId <= 0) {
+            alert('商品不存在！');
+            return;
+        }
+        if (maxStock <= 0) {
+            alert('商品已无货！');
+            return;
+        }
+        if (quantity < 1 || quantity > maxStock) {
+            alert(`请选择1-${maxStock}之间的数量！`);
+            return;
+        }
+        
+        // 2. 发送请求（API路径修正为后端定义的 /api/add_to_cart）
+        fetch('/api/add_to_cart', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                product_id: productId,  // 参数名和后端一致
+                quantity: quantity      // 参数名和后端一致
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`网络错误：${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('加入购物车成功！');
+                // 可选：跳转到购物车页面（如果需要）
+                // window.location.href = '/cart';
+            } else {
+                alert(`加入购物车失败：${data.msg || '未知错误'}`);
+            }
+        })
+        .catch(error => {
+            console.error('加入购物车失败：', error);
+            alert('加入购物车失败，请刷新页面重试！');
+        });
+    });
+}
+
+// 收藏功能（修正API路径：和后端app.py的/api/add_favorite、/api/remove_favorite对应）
+function setupFavorite() {
+    favoriteBtn.addEventListener('click', function() {
+        // 1. 校验商品ID
+        if (productId <= 0) {
+            alert('商品不存在！');
+            return;
+        }
+        
+        // 2. 确定请求API（根据当前收藏状态）
+        const apiUrl = isFavorite ? '/api/remove_favorite' : '/api/add_favorite';
+        
+        // 3. 发送请求（API路径修正为后端定义的接口）
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                product_id: productId  // 参数名和后端一致
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`网络错误：${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // 切换收藏状态并更新UI
+                isFavorite = !isFavorite;
+                if (isFavorite) {
+                    favoriteBtn.classList.add('active');
+                    favoriteIcon.textContent = '★';
+                    favoriteText.textContent = '已收藏';
+                } else {
+                    favoriteBtn.classList.remove('active');
+                    favoriteIcon.textContent = '☆';
+                    favoriteText.textContent = '收藏';
+                }
+                alert(data.msg || (isFavorite ? '收藏成功！' : '取消收藏成功！'));
+            } else {
+                alert(`操作失败：${data.msg || '未知错误'}`);
+            }
+        })
+        .catch(error => {
+            console.error('收藏操作失败：', error);
+            alert('收藏操作失败，请刷新页面重试！');
+        });
+    });
+}
+
+// 初始化所有功能
+document.addEventListener('DOMContentLoaded', function() {
+    setupQuantityControls();
+    setupAddToCart();
+    setupFavorite();
+});
+</script>
+{% endblock %}

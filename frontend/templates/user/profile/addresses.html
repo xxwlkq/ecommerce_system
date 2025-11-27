@@ -1,0 +1,208 @@
+{% extends "base/base.html" %}
+
+{% block title %}收货地址 - 电子商务系统{% endblock %}
+
+{% block css %}
+<style>
+    .profile-container {
+        display: flex;
+        gap: 30px;
+    }
+    .profile-sidebar {
+        width: 200px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .user-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: #008CBA;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        margin: 0 auto 15px;
+    }
+    .user-name {
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .profile-menu {
+        margin-top: 30px;
+    }
+    .menu-item {
+        display: block;
+        padding: 12px 0;
+        color: #333;
+        text-decoration: none;
+        border-bottom: 1px solid #eee;
+    }
+    .menu-item:hover, .menu-item.active {
+        color: #008CBA;
+        font-weight: bold;
+    }
+    .profile-content {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        border: 1px solid #eee;
+    }
+    .content-title {
+        font-size: 22px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    .address-list {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .address-card {
+        width: 30%;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 15px;
+        position: relative;
+    }
+    .address-card.active {
+        border-color: #008CBA;
+        background: #f0f7ff;
+    }
+    .address-default {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #008CBA;
+        color: white;
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 12px;
+    }
+    .address-name {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .address-phone {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+    .address-detail {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    .address-operate {
+        display: flex;
+        gap: 10px;
+    }
+    .edit-btn, .delete-btn, .default-btn {
+        padding: 4px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+    .edit-btn {
+        background: #f5f5f5;
+        color: #333;
+    }
+    .delete-btn {
+        background: #e74c3c;
+        color: white;
+    }
+    .default-btn {
+        background: #008CBA;
+        color: white;
+    }
+    .add-address-btn {
+        width: 30%;
+        height: 120px;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: #666;
+        cursor: pointer;
+        transition: border-color 0.3s;
+    }
+    .add-address-btn:hover {
+        border-color: #008CBA;
+        color: #008CBA;
+    }
+    .add-icon {
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- 侧边栏菜单 -->
+    <div class="profile-sidebar">
+        <div class="user-avatar">{{ user_info.username[0] }}</div>
+        <div class="user-name">{{ user_info.username }}</div>
+        <div class="profile-menu">
+            <a href="/profile" class="menu-item">个人信息</a>
+            <a href="/profile/orders" class="menu-item">我的订单</a>
+            <a href="/profile/favorites" class="menu-item">我的收藏</a>
+            <a href="/profile/addresses" class="menu-item active">收货地址</a>
+            <a href="/profile/recharge" class="menu-item">余额充值</a>
+        </div>
+    </div>
+
+    <!-- 主体内容 -->
+    <div class="profile-content">
+        <h2 class="content-title">收货地址管理</h2>
+
+        <div class="address-list">
+            {% if addresses %}
+                {% for address in addresses %}
+                <div class="address-card {% if address.is_default %}active{% endif %}">
+                    {% if address.is_default %}
+                        <div class="address-default">默认地址</div>
+                    {% endif %}
+                    <div class="address-name">{{ address.name }}</div>
+                    <div class="address-phone">{{ address.phone }}</div>
+                    <div class="address-detail">{{ address.province }} {{ address.city }} {{ address.district }} {{ address.detail }}</div>
+                    <div class="address-operate">
+                        <button class="edit-btn">编辑</button>
+                        <button class="delete-btn">删除</button>
+                        {% if not address.is_default %}
+                            <button class="default-btn">设为默认</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- 新增地址按钮 -->
+            <div class="add-address-btn" onclick="showAddAddressForm()">
+                <div class="add-icon">+</div>
+                <div>新增收货地址</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    // 显示新增地址表单（后续可扩展弹窗表单）
+    function showAddAddressForm() {
+        alert('新增地址功能待实现，可在后端添加地址管理接口');
+        // 后续可通过弹窗表单收集地址信息，调用 /api/add_address 接口
+    }
+</script>
+{% endblock %}
