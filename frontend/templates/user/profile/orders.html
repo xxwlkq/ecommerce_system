@@ -187,7 +187,7 @@
         </div>
     </div>
 
-    <!-- 主体内容 -->
+    <!-- 主体内容（修复：去掉item.category，简化循环条件） -->
     <div class="profile-content">
         <h2 class="content-title">我的订单</h2>
         <div class="order-filter">
@@ -209,17 +209,18 @@
                         <div class="order-time">下单时间：{{ order.create_time }}</div>
                     </div>
                     <div class="order-items">
-                        <!-- 正确语法：用 is iterable 替代 is list，兼容 Jinja2 模板 -->
-                        {% for item in (order.items if (order is defined and order.items is defined and order.items is iterable) else []) %}
-                        <div class="order-item">
-                            <img src="/static/admin/uploads/products/{{ item.image|default('default.jpg') }}" alt="{{ item.name }}">
-                            <div class="order-item-info">
-                                <div class="order-item-name">{{ item.name }}</div>
-                                <div class="order-item-attr">分类：{{ item.category|default('未知分类') }}</div>
-                                <div class="order-item-price">¥{{ "%.2f"|format(item.price) }} <span class="order-item-quantity">x{{ item.quantity }}</span></div>
+                        {% if order.items and order.items is iterable %}
+                            {% for item in order.items %}
+                            <div class="order-item">
+                                <img src="/static/admin/uploads/products/{{ item.image|default('default.jpg') }}" alt="{{ item.name }}" class="order-item-img">
+                                <div class="order-item-info">
+                                    <div class="order-item-name">{{ item.name }}</div>
+                                    <div class="order-item-attr">数量：x{{ item.quantity }}</div>
+                                    <div class="order-item-price">¥{{ "%.2f"|format(item.price) }}</div>
+                                </div>
                             </div>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
+                        {% endif %}
                     </div>
                     <div class="order-footer">
                         <div class="order-total">实付款：¥{{ order.total_amount }}</div>

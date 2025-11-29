@@ -1,0 +1,133 @@
+#购物车页面样式（cart.css）
+/* 购物车标题 */
+.cart-title {
+    font-size: 22px;
+    margin: 20px 0;
+    color: #333;
+}
+
+/* 购物车为空提示 */
+.empty-cart {
+    text-align: center;
+    padding: 50px 0;
+    background-color: white;
+    border-radius: 8px;
+}
+
+.empty-cart img {
+    width: 150px;
+    margin-bottom: 20px;
+}
+
+.empty-cart p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* 购物车表格 */
+.cart-table {
+    width: 100%;
+    background-color: white;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.cart-table th,
+.cart-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.cart-table th {
+    background-color: #f9fafb;
+    font-weight: 600;
+}
+
+/* 商品图片+名称 */
+.cart-product {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cart-product img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.cart-product-name {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 数量调整按钮 */
+.quantity-control {
+    display: flex;
+    align-items: center;
+    width: 100px;
+}
+
+.quantity-control button {
+    width: 30px;
+    height: 30px;
+    background-color: #f0f0f0;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.quantity-control input {
+    width: 40px;
+    height: 30px;
+    text-align: center;
+    border: 1px solid #f0f0f0;
+    outline: none;
+}
+
+/* 操作按钮 */
+.cart-actions button {
+    background: none;
+    border: none;
+    color: #e53e3e;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.cart-actions button:hover {
+    text-decoration: underline;
+}
+
+/* 结算区域 */
+.checkout-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.total-amount {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.total-amount span {
+    color: #e53e3e;
+    font-size: 22px;
+}
+
+.checkout-bar .btn {
+    padding: 10px 30px;
+    font-size: 16px;
+}

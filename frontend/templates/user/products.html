@@ -3,6 +3,10 @@
 {% block title %}商品列表 - 电子商务系统{% endblock %}
 
 {% block css %}
+<!-- 复用基础样式 + 首页商品列表样式 -->
+<link rel="stylesheet" href="/static/user/css/base.css">
+<link rel="stylesheet" href="/static/user/css/index.css">
+<!-- 分类筛选+商品列表核心样式 -->
 <style>
     .category-filter {
         background: #f9f9f9;
@@ -87,6 +91,18 @@
         border-radius: 4px;
         font-size: 14px;
     }
+    /* 新增筛选栏专属样式（少量） */ /* 修复：将 HTML 注释改为 CSS 注释 */
+    .filter-container { 
+        display: flex; 
+        gap: 15px; 
+        padding: 15px; 
+        border-bottom: 1px solid #eee; 
+    }
+    .filter-select { 
+        padding: 8px 12px; 
+        border: 1px solid #ddd; 
+        border-radius: 4px; 
+    }
 </style>
 {% endblock %}
 
@@ -122,4 +138,20 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block js %}
+<!-- 复用加入购物车逻辑 + 分页/筛选逻辑 -->
+<script src="/static/user/js/base.js"></script>
+<script src="/static/user/js/product.js"></script>
+<script>
+  // 筛选功能（简单示例）
+  document.querySelectorAll('.category-tag').forEach(tag => {
+    tag.addEventListener('click', function(e) {
+      e.preventDefault();
+      const category = this.textContent.trim();
+      window.location.href = `/products?category=${encodeURIComponent(category)}`;
+    });
+  });
+</script>
 {% endblock %}

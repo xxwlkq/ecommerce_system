@@ -162,7 +162,7 @@
         </div>
     </div>
 
-    <!-- 主体内容 -->
+    <!-- 主体内容（修复：district改为area） -->
     <div class="profile-content">
         <h2 class="content-title">收货地址管理</h2>
 
@@ -175,7 +175,7 @@
                     {% endif %}
                     <div class="address-name">{{ address.name }}</div>
                     <div class="address-phone">{{ address.phone }}</div>
-                    <div class="address-detail">{{ address.province }} {{ address.city }} {{ address.district }} {{ address.detail }}</div>
+                    <div class="address-detail">{{ address.province }} {{ address.city }} {{ address.area }} {{ address.detail }}</div>
                     <div class="address-operate">
                         <button class="edit-btn">编辑</button>
                         <button class="delete-btn">删除</button>
@@ -199,10 +199,9 @@
 
 {% block js %}
 <script>
-    // 显示新增地址表单（后续可扩展弹窗表单）
+    // 显示新增地址表单
     function showAddAddressForm() {
         alert('新增地址功能待实现，可在后端添加地址管理接口');
-        // 后续可通过弹窗表单收集地址信息，调用 /api/add_address 接口
     }
 </script>
 {% endblock %}

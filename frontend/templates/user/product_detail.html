@@ -228,7 +228,7 @@
 const productDataElement = document.getElementById('productData');
 const productId = parseInt(productDataElement.dataset.productId) || 0;
 const maxStock = parseInt(productDataElement.dataset.productStock) || 1;
-let isFavorite = productDataElement.dataset.isFavorite === 'true';
+let isFavorite = productDataElement.dataset.isFavorite === 'true'; // 初始值（后续会被后端状态覆盖）
 
 // DOM元素引用
 const quantityInput = document.getElementById('quantityInput');
@@ -239,7 +239,7 @@ const favoriteBtn = document.getElementById('favoriteBtn');
 const favoriteText = document.getElementById('favoriteText');
 const favoriteIcon = favoriteBtn.querySelector('.icon-star');
 
-// 数量控制功能
+// 数量控制功能（保留你原有逻辑）
 function setupQuantityControls() {
     decreaseBtn.addEventListener('click', function() {
         let current = parseInt(quantityInput.value);
@@ -265,7 +265,7 @@ function setupQuantityControls() {
     });
 }
 
-// 加入购物车功能（修正API路径：和后端app.py的/api/add_to_cart对应）
+// 加入购物车功能（保留你原有逻辑）
 function setupAddToCart() {
     addToCartBtn.addEventListener('click', function() {
         const quantity = parseInt(quantityInput.value);
@@ -317,7 +317,44 @@ function setupAddToCart() {
     });
 }
 
-// 收藏功能（修正API路径：和后端app.py的/api/add_favorite、/api/remove_favorite对应）
+// 👉 新增：同步后端收藏状态（解决“星星不变黑”问题）
+function syncFavoriteStatus() {
+    // 商品ID无效时，不发送请求
+    if (productId <= 0) return;
+
+    // 调用后端新增的“检查收藏状态”接口
+    fetch(`/api/check_favorite?product_id=${productId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`网络错误：${response.status}`);
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (result.success) {
+                // 用后端返回的状态覆盖本地初始值
+                isFavorite = result.is_favorite;
+                // 根据真实状态更新UI
+                if (isFavorite) {
+                    favoriteBtn.classList.add('active');
+                    favoriteIcon.textContent = '★';
+                    favoriteText.textContent = '已收藏';
+                } else {
+                    favoriteBtn.classList.remove('active');
+                    favoriteIcon.textContent = '☆';
+                    favoriteText.textContent = '收藏';
+                }
+            } else {
+                console.error('同步收藏状态失败：', result.msg);
+                // 失败时不影响原有操作，仅打印错误
+            }
+        })
+        .catch(error => {
+            console.error('同步收藏状态异常：', error);
+        });
+}
+
+// 收藏功能（保留你原有点击逻辑，无需修改）
 function setupFavorite() {
     favoriteBtn.addEventListener('click', function() {
         // 1. 校验商品ID
@@ -370,11 +407,24 @@ function setupFavorite() {
     });
 }
 
-// 初始化所有功能
+// 初始化所有功能（新增同步收藏状态的调用）
 document.addEventListener('DOMContentLoaded', function() {
     setupQuantityControls();
     setupAddToCart();
     setupFavorite();
+    syncFavoriteStatus(); // 👉 关键：页面加载时同步后端收藏状态
 });
 </script>
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="/static/user/css/base.css">
+<!-- 新增专属详情页CSS（商品展示、规格选择样式） -->
+<link rel="stylesheet" href="/static/user/css/product_detail.css">
+{% endblock %}
+
+{% block js %}
+<script src="/static/user/js/base.js"></script>
+<!-- 新增专属详情页JS -->
+<script src="/static/user/js/product_detail.js"></script>
 {% endblock %}

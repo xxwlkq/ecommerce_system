@@ -1,70 +1,235 @@
+<!-- frontend/templates/base/base.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}电子商务系统{% endblock %}</title>
-    <!-- 引入用户端公共CSS（后续在static文件夹创建） -->
-    <link rel="stylesheet" href="/static/user/css/common.css">
-    <!-- 页面专属CSS（子页面可覆盖） -->
-    {% block css %}{% endblock %}
+    <!-- 引入公共CSS -->
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 导航栏样式 */
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 导航栏阴影 */
+            padding: 15px 0;
+            position: sticky; /* 导航栏固定在顶部 */
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center; /* 导航栏内容居中 */
+            align-items: center;
+            gap: 20px; /* 菜单项间距 */
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-decoration: none;
+            margin-right: 20px; /* 与其他菜单隔开 */
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+        }
+
+        .nav-link {
+            color: #34495e;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #3498db; /* hover时变蓝色 */
+        }
+
+        .user-info {
+            margin-left: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-info a {
+            color: #e74c3c;
+            text-decoration: none;
+            margin-left: 5px;
+        }
+
+        /* 页脚样式 */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 50px;
+        }
+
+        /* 主内容区容器 */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 提示框样式（加入购物车等反馈） */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 4px;
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.success {
+            background-color: #2ecc71;
+        }
+
+        .toast.error {
+            background-color: #e74c3c;
+        }
+    </style>
+    {% block css %}{% endblock %} <!-- 子页面自定义CSS -->
 </head>
 <body>
-    <!-- 公共导航栏 -->
+    <!-- 导航栏 -->
     <header class="navbar">
-        <div class="container">
+        <div class="navbar-container">
+            <!-- 网站logo -->
             <a href="/" class="logo">电商系统</a>
-            <nav class="nav-links">
-                <a href="/">首页</a>
-                <a href="/products">商品列表</a>
-                <a href="/cart">购物车</a>
-                <a href="/profile">个人中心</a>
-                <a href="/admin" class="admin-link">后台管理</a>
-            </nav>
+            
+            <!-- 导航菜单 -->
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">首页</a></li>
+                <li><a href="/products" class="nav-link">商品列表</a></li>
+                <li><a href="/cart" class="nav-link">购物车</a></li>
+                <li><a href="/profile" class="nav-link">个人中心</a></li>
+                <!-- 后台管理菜单：默认隐藏，管理员登录后显示 -->
+                <li><a id="admin-link" href="/admin/user_manage" class="nav-link" style="display: none;">后台管理</a></li>
+            </ul>
+            
+            <!-- 用户信息（动态切换） -->
             <div class="user-info">
-                {% if session.username %}
-                    <span>欢迎，{{ session.username }}</span>
-                    <a href="/api/logout">退出登录</a>
-                {% else %}
-                    <a href="javascript:login()">登录</a>
-                {% endif %}
+                <!-- 已登录：显示欢迎信息 + 退出登录 -->
+                <span id="user-greeting" style="display: none;"></span>
+                <a id="logout-link" href="javascript:;" class="nav-link" style="display: none;">退出登录</a>
+                
+                <!-- 未登录：显示登录 + 注册 -->
+                <a id="login-link" href="/login" class="nav-link">登录</a>
+                <span id="separator" style="margin: 0 8px;">|</span>
+                <a id="register-link" href="/register" class="nav-link">注册</a>
             </div>
         </div>
     </header>
 
-    <!-- 页面主体内容（子页面填充） -->
-    <main class="container">
+    <!-- 主内容区（由子页面填充） -->
+    <div class="main-container">
         {% block content %}{% endblock %}
-    </main>
+    </div>
 
-    <!-- 公共页脚 -->
-    <footer class="footer">
-        <div class="container">
-            <p>© 2025 电子商务系统 - 模拟购物平台</p>
-        </div>
+    <!-- 页脚 -->
+    <footer>
+        © 2025 电子商务系统 - 模拟购物平台
     </footer>
 
-    <!-- 引入公共JS -->
-    <script src="/static/user/js/common.js"></script>
-    <!-- 登录弹窗逻辑 -->
+    <!-- 提示框（默认隐藏，JS控制显示） -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 公共JS（提示框功能 + 登录状态控制） -->
     <script>
-        function login() {
-            const username = prompt('请输入用户名登录：');
-            if (username) {
-                fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: username })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    alert(data.msg);
-                    if (data.success) window.location.reload();
-                });
-            }
+        // 显示提示框函数（供子页面调用）
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + (isSuccess ? 'success' : 'error');
+            toast.style.opacity = '1';
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 3000);
         }
+
+        // 页面加载时初始化登录状态
+        window.onload = function() {
+            // 从sessionStorage读取用户信息
+            const username = sessionStorage.getItem('username');
+            const isAdmin = sessionStorage.getItem('is_admin') === 'true';
+
+            // 获取DOM元素
+            const adminLink = document.getElementById('admin-link');
+            const userGreeting = document.getElementById('user-greeting');
+            const logoutLink = document.getElementById('logout-link');
+            const loginLink = document.getElementById('login-link');
+            const registerLink = document.getElementById('register-link');
+            const separator = document.getElementById('separator');
+
+            if (username) {
+                // 已登录状态：显示欢迎信息+退出，隐藏登录/注册/分隔符
+                userGreeting.textContent = `欢迎，${username}`;
+                userGreeting.style.display = 'inline';
+                logoutLink.style.display = 'inline';
+                
+                loginLink.style.display = 'none';
+                registerLink.style.display = 'none';
+                separator.style.display = 'none';
+
+                // 管理员：显示后台管理菜单
+                if (isAdmin) {
+                    adminLink.style.display = 'inline';
+                }
+            } else {
+                // 未登录状态：隐藏欢迎信息+退出，显示登录/注册/分隔符
+                userGreeting.style.display = 'none';
+                logoutLink.style.display = 'none';
+                adminLink.style.display = 'none';
+                
+                loginLink.style.display = 'inline';
+                registerLink.style.display = 'inline';
+                separator.style.display = 'inline';
+            }
+        };
+
+        // 退出登录逻辑
+        document.getElementById('logout-link').addEventListener('click', function() {
+            // 清除sessionStorage中的用户状态
+            sessionStorage.removeItem('username');
+            sessionStorage.removeItem('is_admin');
+            
+            // 跳转到登录页
+            window.location.href = '/login';
+            // 显示退出成功提示
+            showToast('退出登录成功', true);
+        });
     </script>
-    <!-- 页面专属JS（子页面可覆盖） -->
-    {% block js %}{% endblock %}
+    {% block js %}{% endblock %} <!-- 子页面自定义JS -->
 </body>
 </html>

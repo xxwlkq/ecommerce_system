@@ -4,12 +4,56 @@
 
 {% block css %}
 <style>
-    .favorites-container {
-        padding: 20px;
-        max-width: 1200px;
-        margin: 0 auto;
+    .profile-container {
+        display: flex;
+        gap: 30px;
     }
-    .section-title {
+    .profile-sidebar {
+        width: 200px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .user-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: #008CBA;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        margin: 0 auto 15px;
+    }
+    .user-name {
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .profile-menu {
+        margin-top: 30px;
+    }
+    .menu-item {
+        display: block;
+        padding: 12px 0;
+        color: #333;
+        text-decoration: none;
+        border-bottom: 1px solid #eee;
+    }
+    .menu-item:hover, .menu-item.active {
+        color: #008CBA;
+        font-weight: bold;
+    }
+    .profile-content {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        border: 1px solid #eee;
+    }
+    .content-title {
         font-size: 22px;
         margin-bottom: 25px;
         font-weight: bold;
@@ -96,11 +140,27 @@
 {% endblock %}
 
 {% block content %}
-<div class="favorites-container">
-    <h2 class="section-title">我的收藏</h2>
-    
-    <div class="favorites-list" id="favoritesList">
-        <!-- 收藏列表将通过JS动态渲染 -->
+<div class="profile-container">
+    <!-- 侧边栏菜单（统一结构） -->
+    <div class="profile-sidebar">
+        <div class="user-avatar">{{ user_info.username[0] }}</div>
+        <div class="user-name">{{ user_info.username }}</div>
+        <div class="profile-menu">
+            <a href="/profile" class="menu-item">个人信息</a>
+            <a href="/profile/orders" class="menu-item">我的订单</a>
+            <a href="/profile/favorites" class="menu-item active">我的收藏</a>
+            <a href="/profile/addresses" class="menu-item">收货地址</a>
+            <a href="/profile/recharge" class="menu-item">余额充值</a>
+        </div>
+    </div>
+
+    <!-- 主体内容 -->
+    <div class="profile-content">
+        <h2 class="content-title">我的收藏</h2>
+        
+        <div class="favorites-list" id="favoritesList">
+            <!-- 收藏列表将通过JS动态渲染 -->
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -109,13 +169,26 @@
 <script>
     // 页面加载后获取收藏列表
     window.onload = function() {
-        fetch('/api/user/get_favorites')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.favorites.length > 0) {
-                    renderFavorites(data.favorites);
+        fetch('/api/get_favorites')
+            .then(res => {
+                if (!res.ok) throw new Error(`网络错误：${res.status}`);
+                return res.json();
+            })
+            .then(result => {
+                if (!result.success) {
+                    document.getElementById('favoritesList').innerHTML = `
+                        <div class="empty-tip">
+                            <img src="/static/user/images/empty-favorites.png" alt="暂无收藏">
+                            <p>${result.msg || '您暂无收藏的商品，去逛逛吧~'}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const favoriteProducts = result.data;
+                if (favoriteProducts.length > 0) {
+                    renderFavorites(favoriteProducts);
                 } else {
-                    // 显示空状态
                     document.getElementById('favoritesList').innerHTML = `
                         <div class="empty-tip">
                             <img src="/static/user/images/empty-favorites.png" alt="暂无收藏">
@@ -126,33 +199,37 @@
             })
             .catch(err => {
                 console.error('获取收藏失败:', err);
-                alert('加载收藏列表失败，请重试');
+                document.getElementById('favoritesList').innerHTML = `
+                    <div class="empty-tip">
+                        <img src="/static/user/images/empty-favorites.png" alt="加载失败">
+                        <p>加载收藏列表失败，请刷新页面重试~</p>
+                    </div>
+                `;
             });
     };
 
     // 渲染收藏列表
-    function renderFavorites(favorites) {
+    function renderFavorites(favoriteProducts) {
         const listContainer = document.getElementById('favoritesList');
         let html = '';
 
-        favorites.forEach(favorite => {
-            const product = favorite.product; // 假设收藏数据中包含商品详情
-            // 修复：用JS三元表达式替换模板语法，动态判断商品状态
+        favoriteProducts.forEach(product => {
             const statusText = product.stock > 0 ? '有货' : '无货';
             const statusClass = product.stock > 0 ? 'color: #27ae60;' : 'color: #e74c3c;';
 
             html += `
                 <div class="favorite-item">
-                    <img src="/static/admin/uploads/products/${product.image}" alt="${product.name}" class="product-img">
+                    <img src="/static/admin/uploads/products/${product.image || 'default-product.png'}" 
+                         alt="${product.name}" class="product-img">
                     <div class="product-info">
                         <div class="product-name">${product.name}</div>
-                        <div class="product-price">¥${product.price}</div>
+                        <div class="product-price">¥${product.price.toFixed(2)}</div>
                         <div class="product-status" style="${statusClass}">${statusText}</div>
                         <div class="operate-btns">
                             <button class="btn add-cart-btn" onclick="addToCart(${product.product_id})">
                                 加入购物车
                             </button>
-                            <button class="btn remove-favorite-btn" onclick="removeFavorite(${favorite.favorite_id})">
+                            <button class="btn remove-favorite-btn" onclick="removeFavorite(${product.product_id})">
                                 取消收藏
                             </button>
                         </div>
@@ -164,9 +241,9 @@
         listContainer.innerHTML = html;
     }
 
-    // 加入购物车
+    // 加入购物车（修复接口路径）
     function addToCart(productId) {
-        fetch('/api/cart/add', {
+        fetch('/api/add_to_cart', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ product_id: productId, quantity: 1 })
@@ -182,24 +259,21 @@
     }
 
     // 取消收藏
-    function removeFavorite(favoriteId) {
+    function removeFavorite(productId) {
         if (confirm('确定要取消收藏该商品吗？')) {
-            fetch('/api/user/remove_favorite', {
+            fetch('/api/remove_favorite', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ favorite_id: favoriteId })
+                body: JSON.stringify({ product_id: productId })
             })
             .then(res => res.json())
             .then(data => {
                 alert(data.msg);
-                if (data.success) {
-                    // 刷新页面重新加载收藏列表
-                    window.location.reload();
-                }
+                if (data.success) window.location.reload();
             })
             .catch(err => {
                 console.error('取消收藏失败:', err);
-                alert('操作失败，请重试');
+                alert('取消收藏失败，请重试');
             });
         }
     }

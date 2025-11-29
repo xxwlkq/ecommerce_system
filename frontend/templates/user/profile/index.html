@@ -103,7 +103,7 @@
         </div>
     </div>
 
-    <!-- 主体内容 -->
+    <!-- 主体内容（修复变量：去掉未传递的register_time，余额从session取） -->
     <div class="profile-content">
         <h2 class="content-title">个人信息</h2>
         <div class="info-list">
@@ -120,12 +120,8 @@
                 <span class="info-value">{{ user_info.email }}</span>
             </div>
             <div class="info-item">
-                <span class="info-label">注册时间：</span>
-                <span class="info-value">{{ user_info.register_time or '未知' }}</span>
-            </div>
-            <div class="info-item">
                 <span class="info-label">账户余额：</span>
-                <span class="info-value" style="color: #e74c3c; font-weight: bold;">¥{{ user_info.balance or '0.00' }}</span>
+                <span class="info-value" style="color: #e74c3c; font-weight: bold;">¥{{ session.get('balance', '0.00') }}</span>
             </div>
         </div>
         <button class="edit-btn">编辑个人信息</button>

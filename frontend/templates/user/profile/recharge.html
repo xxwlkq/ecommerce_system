@@ -160,13 +160,13 @@
         </div>
     </div>
 
-    <!-- 主体内容 -->
+    <!-- 主体内容（修复：闭合标签，改用balance变量） -->
     <div class="profile-content">
         <h2 class="content-title">余额充值</h2>
 
         <div class="balance-card">
             <div class="balance-title">当前账户余额</div>
-            <div class="balance-amount">¥{{ user_info.balance or '0.00' }}</div>
+            <div class="balance-amount">¥{{ balance }}</div>
         </div>
 
         <div class="recharge-form">
@@ -191,5 +191,23 @@
                     <input type="radio" name="payment" class="payment-radio" id="alipay">
                     <label for="alipay" class="payment-label">支付宝支付</label>
                 </div>
-                <div class="payment-method">
-                    <input type="radio" name="payment"
+            </div>
+
+            <button class="recharge-btn">确认充值</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    // 选择充值金额
+    function selectAmount(amount) {
+        document.getElementById('customAmount').value = amount;
+        // 高亮选中的金额选项
+        document.querySelectorAll('.amount-option').forEach(opt => {
+            opt.classList.toggle('active', opt.textContent === `¥${amount}`);
+        });
+    }
+</script>
+{% endblock %}

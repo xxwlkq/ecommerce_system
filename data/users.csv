@@ -1,0 +1,4 @@
+﻿user_id,username,password,phone,balance,favorites,is_admin
+anonymous,匿名用户,,,0.0,[],False
+user_5271047597418844392,a,$2b$12$Z8X7Y6W5V4U3T2S1R0Q9P8O7N6M5L4K3J2I1H0G1F2E3D4C5,18420164068,0.0,[1],True
+

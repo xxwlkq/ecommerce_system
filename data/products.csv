@@ -1,9 +1,9 @@
 ﻿product_id,name,category,price,stock,description,image
-1,iPhone 15 Pro,手机数码,7999,99,A17 Pro芯片，超视网膜XDR显示屏，IP68防水,iphone15.jpg
+1,iPhone 15 Pro,手机数码,7999,98,A17 Pro芯片，超视网膜XDR显示屏，IP68防水,iphone15.jpg
 2,MacBook Air,电脑办公,8999,48,M2芯片，13.6英寸Liquid视网膜屏，续航18小时,macbook.jpg
-3,AirPods Pro 2,手机数码,1999,200,主动降噪，空间音频，MagSafe充电盒,airpods.jpg
+3,AirPods Pro 2,手机数码,1999,199,主动降噪，空间音频，MagSafe充电盒,airpods.jpg
 4,华为Mate 60 Pro,手机数码,6999,79,麒麟9000S芯片，卫星通信，超光变XMO摄影,huawei_mate60.jpg
 5,小米平板6,电脑办公,2499,149,2.8K LCD屏，骁龙870处理器，支持触控笔,mi_pad6.jpg
 6,戴森吹风机,家居用品,2790,59,负离子护发，6档风速调节，快速干发,dyson_hairdryer.jpg
 7,SK-II神仙水,美妆护肤,1590,90,PITERA™核心成分，调节肌肤水油平衡,sk2.jpg
-8,Nike Air Max,服装鞋帽,1299,120,全掌气垫缓震，网面透气，经典配色,nike_airmax.jpg
+8,Nike Air Max,服装鞋帽,1299,119,全掌气垫缓震，网面透气，经典配色,nike_airmax.jpg
